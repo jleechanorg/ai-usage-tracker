@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of AI Usage Tracker
 - Combined usage report generator for Claude and Codex
 - Python script for generating usage reports (`scripts/combined-usage-report.py`)
+- **Automated installation script** (`scripts/install-dependencies.sh`)
+  - Installs ccusage and ccusage-codex via npm
+  - Checks for existing installations
+  - Verifies installation success
+  - Colored output for better UX
 - Claude Code skill for easy invocation (`/combined-usage`)
 - Comprehensive documentation in `docs/usage-report.md`
 - Example usage report with insights and recommendations
