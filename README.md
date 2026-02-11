@@ -6,6 +6,21 @@ A comprehensive token usage and cost tracking tool for Claude Code and Codex CLI
 
 This tool combines usage data from both `ccusage` (Claude) and `ccusage-codex` (Codex) to provide a unified view of your AI token consumption and associated costs.
 
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/jleechan2015/ai-usage-tracker.git
+cd ai-usage-tracker
+
+# Run the report
+python3 scripts/combined-usage-report.py
+
+# Or install as a Claude skill
+ln -s $(pwd)/.claude/skills/combined-usage ~/.claude/skills/combined-usage
+# Then use: /combined-usage
+```
+
 ## Features
 
 - **Combined Reporting**: View Claude and Codex usage side-by-side
