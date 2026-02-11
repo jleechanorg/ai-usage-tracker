@@ -1,0 +1,88 @@
+---
+name: combined-usage
+description: Generate a combined token usage report for Claude and Codex CLIs with detailed statistics and cost analysis
+invocations:
+  - combined-usage
+  - usage-report
+  - token-report
+---
+
+# Combined Claude + Codex Usage Report
+
+Generate a comprehensive token usage report that combines data from both Claude Code and Codex CLI.
+
+## What This Does
+
+1. Fetches token usage data from `ccusage` (Claude) and `ccusage-codex` (Codex)
+2. Combines the data into a unified table showing:
+   - Daily token usage for both tools
+   - Cost breakdown per tool
+   - Total combined usage and costs
+3. Calculates daily averages for the period
+4. Provides insights on usage patterns and cache efficiency
+
+## Usage
+
+Execute the Python script that generates the report:
+
+```bash
+python3 scripts/combined-usage-report.py
+```
+
+### Options
+
+- `--days N` - Number of days to include in the report (default: 7)
+- `--json` - Output in JSON format instead of table format
+- `--help` - Show help message
+
+### Examples
+
+```bash
+# Default: Last 7 days
+python3 scripts/combined-usage-report.py
+
+# Last 14 days
+python3 scripts/combined-usage-report.py --days 14
+
+# JSON output for programmatic processing
+python3 scripts/combined-usage-report.py --json
+```
+
+## Output Format
+
+The report includes:
+
+### 1. Usage Table
+A formatted table showing:
+- Date
+- Claude tokens and cost
+- Codex tokens and cost
+- Combined totals
+
+### 2. Daily Averages
+- Averages for complete days (excluding today)
+- Averages including today
+- Per-tool breakdown
+
+### 3. Totals
+- Total tokens used across both tools
+- Total cost
+- Usage distribution
+
+## Requirements
+
+- `ccusage` CLI installed (for Claude token usage)
+- `ccusage-codex` CLI installed (for Codex token usage)
+- Python 3.6 or higher
+
+## Example Output
+
+```
+╔════════════╦═══════════════╦════════════╦═══════════════╦════════════╦═══════════════╦════════════╗
+║    Date    ║ Claude Tokens ║ Claude $   ║ Codex Tokens  ║  Codex $   ║ Total Tokens  ║  Total $   ║
+╠════════════╬═══════════════╬════════════╬═══════════════╬════════════╬═══════════════╬════════════╣
+║ 02-11      ║    88,155,247 ║ $    37.31 ║    67,371,956 ║ $    12.82 ║   155,527,203 ║ $    50.13 ║
+...
+```
+
+See `docs/usage-report.md` for a complete example report with insights and analysis.
