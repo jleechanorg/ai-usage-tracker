@@ -141,7 +141,10 @@ Options:
 
   const since = new Date();
   since.setDate(since.getDate() - days);
-  const sinceDate = since.toISOString().split("T")[0].replace(/-/g, "");
+  const year = since.getFullYear();
+  const month = String(since.getMonth() + 1).padStart(2, '0');
+  const day = String(since.getDate()).padStart(2, '0');
+  const sinceDate = `${year}${month}${day}`;
 
   process.stderr.write("Fetching Claude usage data...\n");
   const claudeData = getClaudeUsage(sinceDate);

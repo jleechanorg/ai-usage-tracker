@@ -8,7 +8,7 @@ and generates a combined report showing usage statistics, costs, and daily avera
 Requirements:
 - ccusage CLI (for Claude token usage)
 - ccusage-codex CLI (for Codex token usage)
-- Python 3.6+
+- Python 3.7+
 
 Usage:
     ai-usage-tracker [--days DAYS] [--json]
@@ -184,7 +184,7 @@ def print_table(combined_data: Dict[str, Dict]):
     }
 
 
-def print_averages(combined_data: Dict[str, Dict], totals: Dict[str, float], days: int):
+def print_averages(combined_data: Dict[str, Dict], totals: Dict[str, float]):
     """Print daily averages."""
     sorted_dates = sorted(combined_data.keys())
     complete_days = sorted_dates[:-1] if len(sorted_dates) > 1 else sorted_dates
@@ -254,7 +254,7 @@ def main():
         }, indent=2))
     else:
         totals = print_table(combined_data)
-        print_averages(combined_data, totals, days)
+        print_averages(combined_data, totals)
 
 
 if __name__ == "__main__":
