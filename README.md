@@ -6,6 +6,24 @@ A comprehensive token usage and cost tracking tool for Claude Code and Codex CLI
 
 This tool combines usage data from both `ccusage` (Claude) and `ccusage-codex` (Codex) to provide a unified view of your AI token consumption and associated costs.
 
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/jleechan2015/ai-usage-tracker.git
+cd ai-usage-tracker
+
+# Install dependencies (ccusage and ccusage-codex)
+./scripts/install-dependencies.sh
+
+# Run the report
+python3 scripts/combined-usage-report.py
+
+# Or install as a Claude skill
+ln -s $(pwd)/.claude/skills/combined-usage ~/.claude/skills/combined-usage
+# Then use: /combined-usage
+```
+
 ## Features
 
 - **Combined Reporting**: View Claude and Codex usage side-by-side
@@ -20,23 +38,43 @@ This tool combines usage data from both `ccusage` (Claude) and `ccusage-codex` (
 ### Prerequisites
 
 - Python 3.6 or higher
-- `ccusage` CLI (for Claude token usage)
-- `ccusage-codex` CLI (for Codex token usage)
+- Node.js and npm (for installing ccusage tools)
 
-### Setup
+### Automated Installation
 
-1. Clone this repository:
+We provide an automated installation script that installs both `ccusage` and `ccusage-codex`:
+
 ```bash
-git clone <repository-url>
+# Clone the repository
+git clone https://github.com/jleechan2015/ai-usage-tracker.git
 cd ai-usage-tracker
+
+# Run the installation script
+./scripts/install-dependencies.sh
 ```
 
-2. Make the script executable:
+The script will:
+- Check if Node.js and npm are installed
+- Install `ccusage` globally via npm
+- Install `ccusage-codex` globally via npm
+- Verify both installations
+- Prompt before reinstalling if already installed
+
+### Manual Installation
+
+If you prefer to install manually:
+
 ```bash
-chmod +x scripts/combined-usage-report.py
+# Install ccusage
+npm install -g ccusage
+
+# Install ccusage-codex
+npm install -g ccusage-codex
 ```
 
-3. (Optional) Install as a Claude skill by symlinking:
+### Additional Setup
+
+1. (Optional) Install as a Claude skill by symlinking:
 ```bash
 ln -s $(pwd)/.claude/skills/combined-usage ~/.claude/skills/combined-usage
 ```
@@ -89,10 +127,12 @@ See [docs/usage-report.md](docs/usage-report.md) for a complete example report w
 ```
 ai-usage-tracker/
 ├── README.md                           # This file
+├── CHANGELOG.md                        # Version history
 ├── docs/
 │   └── usage-report.md                 # Example report with analysis
 ├── scripts/
-│   └── combined-usage-report.py        # Main script
+│   ├── install-dependencies.sh         # Automated installation script
+│   └── combined-usage-report.py        # Main report generator
 └── .claude/
     └── skills/
         └── combined-usage              # Claude skill definition
