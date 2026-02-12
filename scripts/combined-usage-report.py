@@ -22,6 +22,10 @@ Options:
 import json
 import sys
 from datetime import datetime, timedelta
+from pathlib import Path
+
+# Add repo root to sys.path to allow importing ai_usage_tracker when run directly
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ai_usage_tracker.core import (
     combine_data,

@@ -56,7 +56,12 @@ def check_dependencies():
 
     if answer in ("", "y", "yes"):
         print(f"Running: npm install -g {pkgs}", file=sys.stderr)
-        ret = subprocess.call(["npm", "install", "-g"] + list(missing.values()))
+        try:
+            ret = subprocess.call(["npm", "install", "-g"] + list(missing.values()))
+        except FileNotFoundError:
+            print("Error: npm not found. Please install Node.js and npm first.", file=sys.stderr)
+            print("  Visit: https://nodejs.org/", file=sys.stderr)
+            sys.exit(1)
         if ret != 0:
             print("Installation failed.", file=sys.stderr)
             sys.exit(1)
