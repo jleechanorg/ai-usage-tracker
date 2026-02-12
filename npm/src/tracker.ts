@@ -46,9 +46,9 @@ function askYesNo(prompt: string): Promise<boolean> {
       resolve(false);
     });
     rl.question(prompt, (answer) => {
-      rl.close();
       const a = answer.trim().toLowerCase();
       resolve(a === "" || a === "y" || a === "yes");
+      rl.close();
     });
   });
 }
