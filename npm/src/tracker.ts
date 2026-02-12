@@ -42,6 +42,9 @@ function commandExists(cmd: string): boolean {
 function askYesNo(prompt: string): Promise<boolean> {
   const rl = createInterface({ input: process.stdin, output: process.stderr });
   return new Promise((resolve) => {
+    rl.on("close", () => {
+      resolve(false);
+    });
     rl.question(prompt, (answer) => {
       rl.close();
       const a = answer.trim().toLowerCase();
