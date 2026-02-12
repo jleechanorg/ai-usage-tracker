@@ -203,13 +203,14 @@ def print_averages(combined_data: Dict[str, Dict], totals: Dict[str, float], day
         print(f"TOTAL:   {(claude_7d+codex_7d)/len(complete_days):>15,.0f} tokens/day  |  ${(claude_cost_7d+codex_cost_7d)/len(complete_days):>9.2f}/day")
 
     num_days = len(sorted_dates)
-    print("\n" + "=" * 90)
-    print(f"DAILY AVERAGES (All {num_days} days including today)")
-    print("=" * 90)
-    print(f"Claude:  {totals['total_claude_tokens']/num_days:>15,.0f} tokens/day  |  ${totals['total_claude_cost']/num_days:>9.2f}/day")
-    print(f"Codex:   {totals['total_codex_tokens']/num_days:>15,.0f} tokens/day  |  ${totals['total_codex_cost']/num_days:>9.2f}/day")
-    print(f"TOTAL:   {totals['total_all_tokens']/num_days:>15,.0f} tokens/day  |  ${totals['total_all_cost']/num_days:>9.2f}/day")
-    print("=" * 90)
+    if num_days > 0:
+        print("\n" + "=" * 90)
+        print(f"DAILY AVERAGES (All {num_days} days including today)")
+        print("=" * 90)
+        print(f"Claude:  {totals['total_claude_tokens']/num_days:>15,.0f} tokens/day  |  ${totals['total_claude_cost']/num_days:>9.2f}/day")
+        print(f"Codex:   {totals['total_codex_tokens']/num_days:>15,.0f} tokens/day  |  ${totals['total_codex_cost']/num_days:>9.2f}/day")
+        print(f"TOTAL:   {totals['total_all_tokens']/num_days:>15,.0f} tokens/day  |  ${totals['total_all_cost']/num_days:>9.2f}/day")
+        print("=" * 90)
 
 
 def main():

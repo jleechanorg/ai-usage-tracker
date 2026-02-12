@@ -90,14 +90,16 @@ function printAverages(combinedData: CombinedData, totals: Record<string, number
   }
 
   const numDays = sortedDates.length;
-  console.log("");
-  console.log("=".repeat(90));
-  console.log(`DAILY AVERAGES (All ${numDays} days including today)`);
-  console.log("=".repeat(90));
-  console.log(`Claude:  ${formatNumber(Math.round(totals.total_claude_tokens / numDays)).padStart(15)} tokens/day  |  $${(totals.total_claude_cost / numDays).toFixed(2).padStart(9)}/day`);
-  console.log(`Codex:   ${formatNumber(Math.round(totals.total_codex_tokens / numDays)).padStart(15)} tokens/day  |  $${(totals.total_codex_cost / numDays).toFixed(2).padStart(9)}/day`);
-  console.log(`TOTAL:   ${formatNumber(Math.round(totals.total_all_tokens / numDays)).padStart(15)} tokens/day  |  $${(totals.total_all_cost / numDays).toFixed(2).padStart(9)}/day`);
-  console.log("=".repeat(90));
+  if (numDays > 0) {
+    console.log("");
+    console.log("=".repeat(90));
+    console.log(`DAILY AVERAGES (All ${numDays} days including today)`);
+    console.log("=".repeat(90));
+    console.log(`Claude:  ${formatNumber(Math.round(totals.total_claude_tokens / numDays)).padStart(15)} tokens/day  |  $${(totals.total_claude_cost / numDays).toFixed(2).padStart(9)}/day`);
+    console.log(`Codex:   ${formatNumber(Math.round(totals.total_codex_tokens / numDays)).padStart(15)} tokens/day  |  $${(totals.total_codex_cost / numDays).toFixed(2).padStart(9)}/day`);
+    console.log(`TOTAL:   ${formatNumber(Math.round(totals.total_all_tokens / numDays)).padStart(15)} tokens/day  |  $${(totals.total_all_cost / numDays).toFixed(2).padStart(9)}/day`);
+    console.log("=".repeat(90));
+  }
 }
 
 async function main(): Promise<void> {

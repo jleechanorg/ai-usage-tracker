@@ -31,7 +31,8 @@ const DEPS: Record<string, string> = {
 
 function commandExists(cmd: string): boolean {
   try {
-    execSync(`command -v ${cmd}`, { stdio: "pipe" });
+    const whichCmd = process.platform === "win32" ? "where" : "which";
+    execSync(`${whichCmd} ${cmd}`, { stdio: "pipe" });
     return true;
   } catch {
     return false;
@@ -127,7 +128,11 @@ export function normalizeDate(dateStr: string): string {
   if (isNaN(dt.getTime())) {
     return dateStr;
   }
-  return dt.toISOString().split("T")[0];
+  // Use local date components to avoid timezone shift
+  const year = dt.getFullYear();
+  const month = String(dt.getMonth() + 1).padStart(2, "0");
+  const day = String(dt.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function combineData(claudeData: UsageData, codexData: UsageData): CombinedData {
