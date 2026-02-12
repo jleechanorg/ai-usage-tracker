@@ -67,7 +67,7 @@ def check_dependencies():
             sys.exit(1)
         print("Dependencies installed successfully.", file=sys.stderr)
     else:
-        print(f"Install manually with:", file=sys.stderr)
+        print("Install manually with:", file=sys.stderr)
         print(f"  npm install -g {pkgs}", file=sys.stderr)
         sys.exit(1)
 
@@ -90,7 +90,14 @@ def main():
     if "--days" in sys.argv:
         idx = sys.argv.index("--days")
         if idx + 1 < len(sys.argv):
-            days = int(sys.argv[idx + 1])
+            try:
+                days = int(sys.argv[idx + 1])
+            except ValueError:
+                print("Error: --days must be a positive integer", file=sys.stderr)
+                sys.exit(1)
+            if days < 1:
+                print("Error: --days must be a positive integer", file=sys.stderr)
+                sys.exit(1)
 
     if "--json" in sys.argv:
         output_json = True

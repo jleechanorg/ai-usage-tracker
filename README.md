@@ -75,8 +75,7 @@ pip install .
 Both the pip and npm packages require `ccusage` and `ccusage-codex` CLI tools:
 
 ```bash
-npm install -g ccusage
-npm install -g ccusage-codex
+npm install -g ccusage @ccusage/codex
 ```
 
 Or use the automated installation script:

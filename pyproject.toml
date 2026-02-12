@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-usage-tracker"
-version = "0.1.3"
+version = "0.1.4"
 description = "Combined Claude + Codex token usage and cost tracking CLI"
 authors = [
     { name = "jleechan", email = "jlee@jleechan.org" },

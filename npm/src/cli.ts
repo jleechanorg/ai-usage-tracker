@@ -132,7 +132,12 @@ Options:
 
   const daysIdx = args.indexOf("--days");
   if (daysIdx !== -1 && daysIdx + 1 < args.length) {
-    days = parseInt(args[daysIdx + 1], 10);
+    const parsed = parseInt(args[daysIdx + 1], 10);
+    if (isNaN(parsed) || parsed < 1) {
+      process.stderr.write("Error: --days must be a positive integer\n");
+      process.exit(1);
+    }
+    days = parsed;
   }
 
   if (args.includes("--json")) {
