@@ -8,8 +8,23 @@ This tool combines usage data from both `ccusage` (Claude) and `ccusage-codex` (
 
 ## Quick Start
 
+### Install via pip (Python)
+
 ```bash
-# Clone the repository
+pip install ai-usage-tracker
+ai-usage-tracker
+```
+
+### Install via npm (Node.js)
+
+```bash
+npm install -g ai-usage-tracker
+ai-usage-tracker-js
+```
+
+### Install from source
+
+```bash
 git clone https://github.com/jleechanorg/ai-usage-tracker.git
 cd ai-usage-tracker
 
@@ -35,62 +50,79 @@ ln -s $(pwd)/.claude/skills/combined-usage ~/.claude/skills/combined-usage
 
 ## Installation
 
-### Prerequisites
-
-- Python 3.6 or higher
-- Node.js and npm (for installing ccusage tools)
-
-### Automated Installation
-
-We provide an automated installation script that installs both `ccusage` and `ccusage-codex`:
+### Option 1: pip (Recommended)
 
 ```bash
-# Clone the repository
+pip install ai-usage-tracker
+```
+
+### Option 2: npm
+
+```bash
+npm install -g ai-usage-tracker
+```
+
+### Option 3: From source
+
+```bash
 git clone https://github.com/jleechanorg/ai-usage-tracker.git
 cd ai-usage-tracker
+pip install .
+```
 
-# Run the installation script
+### Prerequisites
+
+Both the pip and npm packages require `ccusage` and `ccusage-codex` CLI tools:
+
+```bash
+npm install -g ccusage @ccusage/codex
+```
+
+Or use the automated installation script:
+
+```bash
 ./scripts/install-dependencies.sh
 ```
 
-The script will:
-- Check if Node.js and npm are installed
-- Install `ccusage` globally via npm
-- Install `ccusage-codex` globally via npm
-- Verify both installations
-- Prompt before reinstalling if already installed
+### Optional: Claude Skill
 
-### Manual Installation
-
-If you prefer to install manually:
-
-```bash
-# Install ccusage
-npm install -g ccusage
-
-# Install ccusage-codex
-npm install -g ccusage-codex
-```
-
-### Additional Setup
-
-1. (Optional) Install as a Claude skill by symlinking:
 ```bash
 ln -s $(pwd)/.claude/skills/combined-usage ~/.claude/skills/combined-usage
 ```
 
 ## Usage
 
-### Command Line
+### Python (pip install)
 
 ```bash
 # Default: Last 7 days
-python3 scripts/combined-usage-report.py
+ai-usage-tracker
 
 # Custom date range
-python3 scripts/combined-usage-report.py --days 14
+ai-usage-tracker --days 14
 
 # JSON output
+ai-usage-tracker --json
+```
+
+### Node.js (npm install)
+
+```bash
+# Default: Last 7 days
+ai-usage-tracker-js
+
+# Custom date range
+ai-usage-tracker-js --days 14
+
+# JSON output
+ai-usage-tracker-js --json
+```
+
+### From source
+
+```bash
+python3 scripts/combined-usage-report.py
+python3 scripts/combined-usage-report.py --days 14
 python3 scripts/combined-usage-report.py --json
 ```
 
@@ -122,17 +154,35 @@ TOTAL:       749,274,679 tokens/day  |  $222.15/day
 
 See [docs/usage-report.md](docs/usage-report.md) for a complete example report with insights and recommendations.
 
+## Packages
+
+| Package | Registry | Install |
+|---------|----------|---------|
+| [ai-usage-tracker](https://pypi.org/project/ai-usage-tracker/) | PyPI | `pip install ai-usage-tracker` |
+| [ai-usage-tracker](https://www.npmjs.com/package/ai-usage-tracker) | npm | `npm install -g ai-usage-tracker` |
+
 ## Repository Structure
 
 ```
 ai-usage-tracker/
 ├── README.md                           # This file
 ├── CHANGELOG.md                        # Version history
+├── pyproject.toml                      # Python package config (PyPI)
+├── ai_usage_tracker/                   # Python package source
+│   ├── __init__.py
+│   └── cli.py                          # CLI entry point
+├── npm/                                # Node.js package source
+│   ├── package.json                    # npm package config
+│   ├── tsconfig.json
+│   └── src/
+│       ├── index.ts                    # Library exports
+│       ├── tracker.ts                  # Core logic
+│       └── cli.ts                      # CLI entry point
 ├── docs/
 │   └── usage-report.md                 # Example report with analysis
 ├── scripts/
 │   ├── install-dependencies.sh         # Automated installation script
-│   └── combined-usage-report.py        # Main report generator
+│   └── combined-usage-report.py        # Original report generator
 └── .claude/
     └── skills/
         └── combined-usage              # Claude skill definition
