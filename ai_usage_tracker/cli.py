@@ -23,6 +23,7 @@ import json
 import shutil
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
@@ -238,11 +239,12 @@ def main():
 
     since_date = (datetime.now() - timedelta(days=days)).strftime("%Y%m%d")
 
-    print("Fetching Claude usage data...", file=sys.stderr)
-    claude_data = get_claude_usage(since_date)
-
-    print("Fetching Codex usage data...", file=sys.stderr)
-    codex_data = get_codex_usage(since_date)
+    print("Fetching Claude and Codex usage data in parallel...", file=sys.stderr)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        claude_future = pool.submit(get_claude_usage, since_date)
+        codex_future = pool.submit(get_codex_usage, since_date)
+        claude_data = claude_future.result()
+        codex_data = codex_future.result()
 
     combined_data = combine_data(claude_data, codex_data)
 

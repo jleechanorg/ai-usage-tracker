@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { getClaudeUsage, getCodexUsage, combineData, checkDependencies } from "./tracker.js";
+import { getClaudeUsageAsync, getCodexUsageAsync, combineData, checkDependencies } from "./tracker.js";
 import type { CombinedData } from "./tracker.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -146,11 +146,11 @@ Options:
   const day = String(since.getDate()).padStart(2, '0');
   const sinceDate = `${year}${month}${day}`;
 
-  process.stderr.write("Fetching Claude usage data...\n");
-  const claudeData = getClaudeUsage(sinceDate);
-
-  process.stderr.write("Fetching Codex usage data...\n");
-  const codexData = getCodexUsage(sinceDate);
+  process.stderr.write("Fetching Claude and Codex usage data in parallel...\n");
+  const [claudeData, codexData] = await Promise.all([
+    getClaudeUsageAsync(sinceDate),
+    getCodexUsageAsync(sinceDate),
+  ]);
 
   const combinedData = combineData(claudeData, codexData);
 

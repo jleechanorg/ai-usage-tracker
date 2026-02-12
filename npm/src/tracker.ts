@@ -1,4 +1,4 @@
-import { execSync, execFileSync, spawnSync } from "node:child_process";
+import { execSync, execFileSync, spawnSync, spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 
 export interface DailyEntry {
@@ -116,6 +116,42 @@ export function getClaudeUsage(sinceDate: string): UsageData {
 
 export function getCodexUsage(sinceDate: string): UsageData {
   const output = runCommand(["ccusage-codex", "daily", "--since", sinceDate, "--order", "desc", "--json"]);
+  return JSON.parse(output) as UsageData;
+}
+
+export function runCommandAsync(cmd: string[]): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const [bin, ...args] = cmd;
+    const child = spawn(bin, args, { stdio: ["pipe", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (data: Buffer) => { stdout += data.toString(); });
+    child.stderr.on("data", (data: Buffer) => { stderr += data.toString(); });
+    child.on("error", (err: NodeJS.ErrnoException) => {
+      if (err.code === "ENOENT") {
+        const pkg = DEPS[cmd[0]] ?? cmd[0];
+        reject(new Error(`Command not found: ${cmd[0]}\n  npm install -g ${pkg}`));
+      } else {
+        reject(new Error(`Error running ${cmd.join(" ")}: ${err.message}`));
+      }
+    });
+    child.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(`Command ${cmd.join(" ")} exited with code ${code}\n${stderr}`));
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
+}
+
+export async function getClaudeUsageAsync(sinceDate: string): Promise<UsageData> {
+  const output = await runCommandAsync(["ccusage", "daily", "--since", sinceDate, "--order", "desc", "--json"]);
+  return JSON.parse(output) as UsageData;
+}
+
+export async function getCodexUsageAsync(sinceDate: string): Promise<UsageData> {
+  const output = await runCommandAsync(["ccusage-codex", "daily", "--since", sinceDate, "--order", "desc", "--json"]);
   return JSON.parse(output) as UsageData;
 }
 
