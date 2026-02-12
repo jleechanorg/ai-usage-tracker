@@ -1,0 +1,53 @@
+{
+  "name": "ai-usage-tracker",
+  "version": "0.1.2",
+  "description": "Combined Claude + Codex token usage and cost tracking CLI",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ai-usage-tracker-js": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "usage",
+    "tracker",
+    "claude",
+    "codex",
+    "tokens",
+    "cost",
+    "cli"
+  ],
+  "author": {
+    "name": "jleechan",
+    "email": "jlee@jleechan.org"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jleechanorg/ai-usage-tracker.git"
+  },
+  "homepage": "https://github.com/jleechanorg/ai-usage-tracker",
+  "bugs": {
+    "url": "https://github.com/jleechanorg/ai-usage-tracker/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@types/node": "^20.19.33",
+    "typescript": "^5.9.3"
+  }
+}
