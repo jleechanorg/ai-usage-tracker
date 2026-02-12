@@ -1,6 +1,6 @@
 {
   "name": "ai-usage-tracker",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Combined Claude + Codex token usage and cost tracking CLI",
   "type": "module",
   "main": "dist/index.js",
