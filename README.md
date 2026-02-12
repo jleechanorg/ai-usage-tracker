@@ -10,7 +10,7 @@ This tool combines usage data from both `ccusage` (Claude) and `ccusage-codex` (
 
 ```bash
 # Clone the repository
-git clone https://github.com/jleechan2015/ai-usage-tracker.git
+git clone https://github.com/jleechanorg/ai-usage-tracker.git
 cd ai-usage-tracker
 
 # Install dependencies (ccusage and ccusage-codex)
@@ -46,7 +46,7 @@ We provide an automated installation script that installs both `ccusage` and `cc
 
 ```bash
 # Clone the repository
-git clone https://github.com/jleechan2015/ai-usage-tracker.git
+git clone https://github.com/jleechanorg/ai-usage-tracker.git
 cd ai-usage-tracker
 
 # Run the installation script
