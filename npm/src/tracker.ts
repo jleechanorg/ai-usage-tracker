@@ -1,5 +1,11 @@
 import { execSync, execFileSync, spawnSync, spawn } from "node:child_process";
 import { createInterface } from "node:readline";
+import os from "node:os";
+import path from "node:path";
+
+// ccusage-codex scans all ~/.codex/sessions/**/*.jsonl regardless of --since,
+// causing OOM on large session stores. Point it at a recent-only sessions dir.
+const CODEX_HOME = path.join(os.homedir(), ".codex-recent");
 
 export interface DailyEntry {
   date: string;
@@ -125,7 +131,10 @@ export function getCodexUsage(sinceDate: string): UsageData {
 export function runCommandAsync(cmd: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     const [bin, ...args] = cmd;
-    const child = spawn(bin, args, { stdio: ["pipe", "pipe", "pipe"] });
+    const env = bin === "ccusage-codex"
+      ? { ...process.env, CODEX_HOME }
+      : process.env;
+    const child = spawn(bin, args, { stdio: ["pipe", "pipe", "pipe"], env });
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (data: Buffer) => { stdout += data.toString(); });
