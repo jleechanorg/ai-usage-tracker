@@ -104,7 +104,7 @@ function printAverages(combinedData: CombinedData, totals: Record<string, number
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  let days = 30;
+  let days = 7;
   let outputJson = false;
 
   if (args.includes("--version") || args.includes("-V")) {
@@ -120,7 +120,7 @@ Usage:
   ai-usage-tracker-js [--days DAYS] [--json]
 
 Options:
-  --days DAYS    Number of days to include in report (default: 30)
+  --days DAYS    Number of days to include in report (default: 7)
   --json         Output in JSON format
   --version      Show version number
   --help         Show this help message
