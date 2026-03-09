@@ -47,3 +47,4 @@ npm/node_modules/
 # Temporary files
 /tmp/
 *.tmp
+.claude/scheduled_tasks.lock

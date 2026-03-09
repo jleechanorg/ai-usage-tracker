@@ -3,9 +3,9 @@ import { createInterface } from "node:readline";
 import os from "node:os";
 import path from "node:path";
 
-// ccusage-codex scans all ~/.codex/sessions/**/*.jsonl regardless of --since,
-// causing OOM on large session stores. Point it at a recent-only sessions dir.
-const CODEX_HOME = path.join(os.homedir(), ".codex-recent");
+// ccusage-codex >= 18.0.10 prunes date directories based on --since/--until,
+// so we can point directly at ~/.codex without a recent-only workaround dir.
+const CODEX_HOME = path.join(os.homedir(), ".codex");
 
 export interface DailyEntry {
   date: string;
