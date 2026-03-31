@@ -108,7 +108,7 @@ def print_table(combined_data: Dict[str, Dict]):
         total_codex_cost += codex_cost
 
         date_short = date[5:]
-        print(f"║ {date_short} ║ {claude_tokens:>13,} ║ ${claude_cost:>9.2f} ║ {codex_tokens:>13,} ║ ${codex_cost:>9.2f} ║ {total_tokens:>13,} ║ ${total_cost:>9.2f} ║")
+        print(f"║ {date_short:^10} ║ {claude_tokens:>13,} ║ ${claude_cost:>9.2f} ║ {codex_tokens:>13,} ║ ${codex_cost:>9.2f} ║ {total_tokens:>13,} ║ ${total_cost:>9.2f} ║")
 
     print("╠════════════╬═══════════════╬════════════╬═══════════════╬════════════╬═══════════════╬════════════╣")
     total_all_tokens = total_claude_tokens + total_codex_tokens
