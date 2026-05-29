@@ -4,19 +4,15 @@ Combined Claude + Codex Token Usage Report Generator
 
 Fetches token usage data from both ccusage (Claude) and ccusage-codex (Codex)
 and generates a combined report showing usage statistics, costs, and daily averages.
+With the high-performance Rust ccusage version, it also dynamically supports
+Gemini (Antigravity) and OpenCode tracking.
 
 Requirements:
-- ccusage CLI (for Claude token usage)
-- ccusage-codex CLI (for Codex token usage)
+- ccusage CLI (Rust version or legacy JS version)
 - Python 3.7+
 
 Usage:
-    ai-usage-tracker [--days DAYS] [--json]
-
-Options:
-    --days DAYS    Number of days to include in report (default: 7)
-    --json         Output in JSON format
-    --help         Show this help message
+- ai-usage-tracker [--days DAYS] [--json]
 """
 
 import json
@@ -29,19 +25,28 @@ from datetime import datetime, timedelta
 from ai_usage_tracker import __version__
 from ai_usage_tracker.core import (
     DEPS,
-    combine_data,
+    combine_all_data,
     get_claude_usage,
     get_codex_usage,
+    get_gemini_usage,
+    get_opencode_usage,
+    has_rust_ccusage,
     print_averages,
     print_table,
 )
 
 
-def check_dependencies():
-    """Check that ccusage and ccusage-codex are installed; offer to install if missing."""
-    missing = {cmd: pkg for cmd, pkg in DEPS.items() if not shutil.which(cmd)}
-    if not missing:
-        return
+def check_dependencies(is_rust: bool):
+    """Check that ccusage is installed; offer to install if missing."""
+    if shutil.which("ccusage"):
+        if is_rust:
+            # Rust version is completely self-contained!
+            return
+        if shutil.which("ccusage-codex"):
+            return
+        missing = {"ccusage-codex": "@ccusage/codex"}
+    else:
+        missing = {"ccusage": "ccusage", "ccusage-codex": "@ccusage/codex"}
 
     names = ", ".join(missing.keys())
     pkgs = " ".join(missing.values())
@@ -90,7 +95,9 @@ def main():
         print(__doc__)
         sys.exit(0)
 
-    check_dependencies()
+    # Detect Rust version of ccusage (supports Claude, Codex, Gemini, OpenCode natively)
+    is_rust = has_rust_ccusage()
+    check_dependencies(is_rust)
 
     if "--days" in sys.argv:
         idx = sys.argv.index("--days")
@@ -109,21 +116,49 @@ def main():
 
     since_date = (datetime.now() - timedelta(days=days)).strftime("%Y%m%d")
 
-    print("Fetching Claude and Codex usage data in parallel...", file=sys.stderr)
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        claude_future = pool.submit(get_claude_usage, since_date)
-        codex_future = pool.submit(get_codex_usage, since_date)
-        claude_data = claude_future.result()
-        codex_data = codex_future.result()
-
-    combined_data = combine_data(claude_data, codex_data)
+    if is_rust:
+        print("Fetching Claude, Codex, Gemini, and OpenCode usage data in parallel...", file=sys.stderr)
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            claude_future = pool.submit(get_claude_usage, since_date, is_rust=True)
+            codex_future = pool.submit(get_codex_usage, since_date, is_rust=True)
+            gemini_future = pool.submit(get_gemini_usage, since_date, is_rust=True)
+            opencode_future = pool.submit(get_opencode_usage, since_date, is_rust=True)
+            
+            claude_data = claude_future.result()
+            codex_data = codex_future.result()
+            gemini_data = gemini_future.result()
+            opencode_data = opencode_future.result()
+            
+        combined_data = combine_all_data({
+            "claude": claude_data,
+            "codex": codex_data,
+            "gemini": gemini_data,
+            "opencode": opencode_data
+        })
+    else:
+        print("Fetching Claude and Codex usage data in parallel...", file=sys.stderr)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            claude_future = pool.submit(get_claude_usage, since_date, is_rust=False)
+            codex_future = pool.submit(get_codex_usage, since_date, is_rust=False)
+            
+            claude_data = claude_future.result()
+            codex_data = codex_future.result()
+            
+        combined_data = combine_all_data({
+            "claude": claude_data,
+            "codex": codex_data
+        })
 
     if output_json:
-        print(json.dumps({
+        result_json = {
             "combined_daily": combined_data,
             "claude_totals": claude_data.get("totals", {}),
             "codex_totals": codex_data.get("totals", {})
-        }, indent=2))
+        }
+        if is_rust:
+            result_json["gemini_totals"] = gemini_data.get("totals", {})
+            result_json["opencode_totals"] = opencode_data.get("totals", {})
+        print(json.dumps(result_json, indent=2))
     else:
         totals = print_table(combined_data)
         print_averages(combined_data, totals)

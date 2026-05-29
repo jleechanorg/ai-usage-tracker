@@ -1,4 +1,4 @@
-import { execSync, execFileSync, spawnSync, spawn } from "node:child_process";
+import { execSync, execFileSync, spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 import os from "node:os";
 import path from "node:path";
@@ -24,6 +24,10 @@ export interface CombinedEntry {
   claude_cost: number;
   codex_tokens: number;
   codex_cost: number;
+  gemini_tokens: number;
+  gemini_cost: number;
+  opencode_tokens: number;
+  opencode_cost: number;
 }
 
 export interface CombinedData {
@@ -35,11 +39,20 @@ const DEPS: Record<string, string> = {
   "ccusage-codex": "@ccusage/codex",
 };
 
-function commandExists(cmd: string): boolean {
+export function commandExists(cmd: string): boolean {
   try {
     const whichCmd = process.platform === "win32" ? "where" : "which";
     execSync(`${whichCmd} ${cmd}`, { stdio: "pipe" });
     return true;
+  } catch {
+    return false;
+  }
+}
+
+export function hasRustCcusage(): boolean {
+  try {
+    const output = execSync("ccusage --help", { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] });
+    return output.includes("openclaw") || output.includes("claude");
   } catch {
     return false;
   }
@@ -59,12 +72,22 @@ function askYesNo(prompt: string): Promise<boolean> {
   });
 }
 
-export async function checkDependencies(): Promise<void> {
-  const missing: Record<string, string> = {};
-  for (const [cmd, pkg] of Object.entries(DEPS)) {
-    if (!commandExists(cmd)) {
-      missing[cmd] = pkg;
+export async function checkDependencies(isRust = false): Promise<void> {
+  if (commandExists("ccusage")) {
+    if (isRust) {
+      return; // Self-contained!
     }
+    if (commandExists("ccusage-codex")) {
+      return;
+    }
+  }
+
+  const missing: Record<string, string> = {};
+  if (!commandExists("ccusage")) {
+    missing["ccusage"] = "ccusage";
+  }
+  if (!isRust && !commandExists("ccusage-codex")) {
+    missing["ccusage-codex"] = "@ccusage/codex";
   }
   if (Object.keys(missing).length === 0) return;
 
@@ -83,8 +106,9 @@ export async function checkDependencies(): Promise<void> {
 
   if (shouldInstall) {
     process.stderr.write(`Running: ${installCmd}\n`);
-    const result = spawnSync("npm", ["install", "-g", ...pkgs], { stdio: "inherit" });
-    if (result.status !== 0) {
+    try {
+      execSync(installCmd, { stdio: "inherit" });
+    } catch {
       process.stderr.write("Installation failed.\n");
       process.exit(1);
     }
@@ -114,7 +138,7 @@ export function runCommand(cmd: string[]): string {
     }
     process.stderr.write(`Error running command ${cmd.join(" ")}: ${error.message}\n`);
     process.exit(1);
-    return ""; // unreachable, satisfies TS
+    return "";
   }
 }
 
@@ -157,14 +181,39 @@ export function runCommandAsync(cmd: string[]): Promise<string> {
   });
 }
 
-export async function getClaudeUsageAsync(sinceDate: string): Promise<UsageData> {
-  const output = await runCommandAsync(["ccusage", "daily", "--since", sinceDate, "--order", "desc", "--json"]);
+export async function getClaudeUsageAsync(sinceDate: string, isRust = false): Promise<UsageData> {
+  const cmd = isRust
+    ? ["ccusage", "claude", "daily", "--since", sinceDate, "--order", "desc", "--json"]
+    : ["ccusage", "daily", "--since", sinceDate, "--order", "desc", "--json"];
+  const output = await runCommandAsync(cmd);
   return JSON.parse(output) as UsageData;
 }
 
-export async function getCodexUsageAsync(sinceDate: string): Promise<UsageData> {
-  const output = await runCommandAsync(["ccusage-codex", "daily", "--since", sinceDate, "--order", "desc", "--json"]);
+export async function getCodexUsageAsync(sinceDate: string, isRust = false): Promise<UsageData> {
+  const cmd = isRust
+    ? ["ccusage", "codex", "daily", "--since", sinceDate, "--order", "desc", "--json"]
+    : ["ccusage-codex", "daily", "--since", sinceDate, "--order", "desc", "--json"];
+  const output = await runCommandAsync(cmd);
   return JSON.parse(output) as UsageData;
+}
+
+export async function getGeminiUsageAsync(sinceDate: string, isRust = false): Promise<UsageData> {
+  if (!isRust) return { daily: [] };
+  const cmd = ["ccusage", "gemini", "daily", "--since", sinceDate, "--order", "desc", "--json"];
+  const output = await runCommandAsync(cmd);
+  return JSON.parse(output) as UsageData;
+}
+
+export async function getOpenCodeUsageAsync(sinceDate: string, isRust = false): Promise<UsageData> {
+  const cmd = isRust
+    ? ["ccusage", "opencode", "daily", "--since", sinceDate, "--order", "desc", "--json"]
+    : ["ccusage-opencode", "daily", "--since", sinceDate, "--order", "desc", "--json"];
+  try {
+    const output = await runCommandAsync(cmd);
+    return JSON.parse(output) as UsageData;
+  } catch {
+    return { daily: [] };
+  }
 }
 
 export function normalizeDate(dateStr: string): string {
@@ -176,7 +225,6 @@ export function normalizeDate(dateStr: string): string {
   if (isNaN(dt.getTime())) {
     return dateStr;
   }
-  // Use local date components to avoid timezone shift
   const year = dt.getFullYear();
   const month = String(dt.getMonth() + 1).padStart(2, "0");
   const day = String(dt.getDate()).padStart(2, "0");
@@ -184,30 +232,33 @@ export function normalizeDate(dateStr: string): string {
 }
 
 export function combineData(claudeData: UsageData, codexData: UsageData): CombinedData {
+  return combineAllData({ claude: claudeData, codex: codexData });
+}
+
+export function combineAllData(agentDatasets: Record<string, UsageData>): CombinedData {
   const combined: CombinedData = {};
 
-  for (const entry of claudeData.daily ?? []) {
-    const date = normalizeDate(entry.date);
-    combined[date] = {
-      claude_tokens: entry.totalTokens ?? 0,
-      claude_cost: entry.totalCost ?? 0,
-      codex_tokens: 0,
-      codex_cost: 0,
-    };
-  }
-
-  for (const entry of codexData.daily ?? []) {
-    const date = normalizeDate(entry.date);
-    if (!combined[date]) {
-      combined[date] = {
-        claude_tokens: 0,
-        claude_cost: 0,
-        codex_tokens: 0,
-        codex_cost: 0,
-      };
+  for (const [agentName, dataset] of Object.entries(agentDatasets)) {
+    for (const entry of dataset.daily ?? []) {
+      const date = normalizeDate(entry.date);
+      if (!combined[date]) {
+        combined[date] = {
+          claude_tokens: 0,
+          claude_cost: 0,
+          codex_tokens: 0,
+          codex_cost: 0,
+          gemini_tokens: 0,
+          gemini_cost: 0,
+          opencode_tokens: 0,
+          opencode_cost: 0,
+        };
+      }
+      const tokens = entry.totalTokens ?? 0;
+      const cost = entry.totalCost ?? entry.costUSD ?? 0;
+      
+      (combined[date] as any)[`${agentName}_tokens`] = tokens;
+      (combined[date] as any)[`${agentName}_cost`] = cost;
     }
-    combined[date].codex_tokens = entry.totalTokens ?? 0;
-    combined[date].codex_cost = entry.costUSD ?? 0;
   }
 
   return combined;
