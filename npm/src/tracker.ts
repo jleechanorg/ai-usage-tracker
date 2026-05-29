@@ -240,7 +240,9 @@ export function combineAllData(agentDatasets: Record<string, UsageData>): Combin
 
   for (const [agentName, dataset] of Object.entries(agentDatasets)) {
     for (const entry of dataset.daily ?? []) {
-      const date = normalizeDate(entry.date);
+      const dateVal = entry.date || (entry as any).period;
+      if (!dateVal) continue;
+      const date = normalizeDate(dateVal);
       if (!combined[date]) {
         combined[date] = {
           claude_tokens: 0,

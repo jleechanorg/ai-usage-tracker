@@ -41,6 +41,7 @@ def get_claude_usage(since_date: str, is_rust: bool = False) -> Dict[str, Any]:
     if is_rust:
         cmd = ["ccusage", "claude", "daily", "--since", since_date, "--order", "desc", "--json"]
     else:
+        # Fallback/standard ccusage daily command
         cmd = ["ccusage", "daily", "--since", since_date, "--order", "desc", "--json"]
     output = run_command(cmd)
     return json.loads(output)
@@ -102,7 +103,10 @@ def combine_all_data(agent_datasets: Dict[str, Dict]) -> Dict[str, Dict]:
     # Initialize keys for all dates
     for agent_name, dataset in agent_datasets.items():
         for entry in dataset.get("daily", []):
-            date = normalize_date(entry["date"])
+            date_val = entry.get("date", entry.get("period"))
+            if not date_val:
+                continue
+            date = normalize_date(date_val)
             if date not in combined:
                 combined[date] = {
                     "claude_tokens": 0,
