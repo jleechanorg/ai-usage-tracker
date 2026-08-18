@@ -8,10 +8,12 @@ import path from "node:path";
 const CODEX_HOME = path.join(os.homedir(), ".codex-recent");
 
 export interface DailyEntry {
-  date: string;
+  date?: string;
+  period?: string;
   totalTokens?: number;
   totalCost?: number;
   costUSD?: number;
+  [key: string]: unknown;
 }
 
 export interface UsageData {
@@ -64,7 +66,7 @@ function askYesNo(prompt: string): Promise<boolean> {
     rl.on("close", () => {
       resolve(false);
     });
-    rl.question(prompt, (answer) => {
+    rl.question(prompt, (answer: string) => {
       const a = answer.trim().toLowerCase();
       resolve(a === "" || a === "y" || a === "yes");
       rl.close();
@@ -144,12 +146,20 @@ export function runCommand(cmd: string[]): string {
 
 export function getClaudeUsage(sinceDate: string): UsageData {
   const output = runCommand(["ccusage", "daily", "--since", sinceDate, "--order", "desc", "--json"]);
-  return JSON.parse(output) as UsageData;
+  try {
+    return JSON.parse(output) as UsageData;
+  } catch {
+    return { daily: [] };
+  }
 }
 
 export function getCodexUsage(sinceDate: string): UsageData {
   const output = runCommand(["ccusage-codex", "daily", "--since", sinceDate, "--order", "desc", "--json"]);
-  return JSON.parse(output) as UsageData;
+  try {
+    return JSON.parse(output) as UsageData;
+  } catch {
+    return { daily: [] };
+  }
 }
 
 export function runCommandAsync(cmd: string[]): Promise<string> {
@@ -171,7 +181,7 @@ export function runCommandAsync(cmd: string[]): Promise<string> {
         reject(new Error(`Error running ${cmd.join(" ")}: ${err.message}`));
       }
     });
-    child.on("close", (code) => {
+    child.on("close", (code: number | null) => {
       if (code !== 0) {
         reject(new Error(`Command ${cmd.join(" ")} exited with code ${code}\n${stderr}`));
       } else {
@@ -185,23 +195,35 @@ export async function getClaudeUsageAsync(sinceDate: string, isRust = false): Pr
   const cmd = isRust
     ? ["ccusage", "claude", "daily", "--since", sinceDate, "--order", "desc", "--json"]
     : ["ccusage", "daily", "--since", sinceDate, "--order", "desc", "--json"];
-  const output = await runCommandAsync(cmd);
-  return JSON.parse(output) as UsageData;
+  try {
+    const output = await runCommandAsync(cmd);
+    return JSON.parse(output) as UsageData;
+  } catch {
+    return { daily: [] };
+  }
 }
 
 export async function getCodexUsageAsync(sinceDate: string, isRust = false): Promise<UsageData> {
   const cmd = isRust
     ? ["ccusage", "codex", "daily", "--since", sinceDate, "--order", "desc", "--json"]
     : ["ccusage-codex", "daily", "--since", sinceDate, "--order", "desc", "--json"];
-  const output = await runCommandAsync(cmd);
-  return JSON.parse(output) as UsageData;
+  try {
+    const output = await runCommandAsync(cmd);
+    return JSON.parse(output) as UsageData;
+  } catch {
+    return { daily: [] };
+  }
 }
 
 export async function getGeminiUsageAsync(sinceDate: string, isRust = false): Promise<UsageData> {
   if (!isRust) return { daily: [] };
   const cmd = ["ccusage", "gemini", "daily", "--since", sinceDate, "--order", "desc", "--json"];
-  const output = await runCommandAsync(cmd);
-  return JSON.parse(output) as UsageData;
+  try {
+    const output = await runCommandAsync(cmd);
+    return JSON.parse(output) as UsageData;
+  } catch {
+    return { daily: [] };
+  }
 }
 
 export async function getOpenCodeUsageAsync(sinceDate: string, isRust = false): Promise<UsageData> {
@@ -216,7 +238,10 @@ export async function getOpenCodeUsageAsync(sinceDate: string, isRust = false): 
   }
 }
 
-export function normalizeDate(dateStr: string): string {
+export function normalizeDate(dateStr?: string | null): string {
+  if (!dateStr || typeof dateStr !== "string") {
+    return "";
+  }
   if (dateStr.includes("-")) {
     return dateStr;
   }
@@ -239,10 +264,13 @@ export function combineAllData(agentDatasets: Record<string, UsageData>): Combin
   const combined: CombinedData = {};
 
   for (const [agentName, dataset] of Object.entries(agentDatasets)) {
-    for (const entry of dataset.daily ?? []) {
+    if (!dataset || !Array.isArray(dataset.daily)) continue;
+    for (const entry of dataset.daily) {
+      if (!entry) continue;
       const dateVal = entry.date || (entry as any).period;
       if (!dateVal) continue;
       const date = normalizeDate(dateVal);
+      if (!date) continue;
       if (!combined[date]) {
         combined[date] = {
           claude_tokens: 0,
